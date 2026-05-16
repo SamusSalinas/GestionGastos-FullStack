@@ -30,7 +30,7 @@ namespace GestionDatos.API.Controllers
             [FromQuery] DateTime? desde,
             [FromQuery] DateTime? hasta)
         {
-            // 👈 ¡CORREGIDO! Ahora el GET usa exactamente la misma propiedad que el POST
+            
             if (string.IsNullOrEmpty(NombreUsuario)) return Unauthorized("No se pudo identificar al usuario en el token.");
 
             // Pasamos los filtros que vienen en la URL

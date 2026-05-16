@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using Scalar.AspNetCore; // 👈 1. IMPORTANTE: Añadimos la caja de herramientas de Scalar
+using Scalar.AspNetCore; 
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -90,7 +90,7 @@ builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 
 var app = builder.Build();
 
-// --- CONFIGURACIÓN DEL PIPELINE (MIDDLEWARES) ---
+// CONFIGURACIÓN DEL PIPELINE (MIDDLEWARES) 
 app.UseHttpsRedirection();
 
 // Activar la política de CORS para React
@@ -105,7 +105,7 @@ app.MapControllers();
 // Publica tu documentación OpenAPI nativa de .NET 10
 app.MapOpenApi();
 
-// 👈 2. ¡LA MAGIA! Esto mapea la interfaz gráfica interactiva de Scalar
+
 app.MapScalarApiReference();
 
 // Seeder automático de categorías de prueba
