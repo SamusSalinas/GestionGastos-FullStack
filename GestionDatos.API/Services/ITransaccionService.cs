@@ -6,11 +6,14 @@ namespace GestionDatos.API.Services
 {
     public interface ITransaccionService
     {
-        // Revisa que estas tres líneas terminen en punto y coma
-        Task<IEnumerable<Transaccion>> GetByUserAsync(string nombreUsuario);
+        // Añadimos parámetros opcionales para filtrar
+        Task<IEnumerable<Transaccion>> GetByUserAsync(
+            string nombreUsuario,
+            int? categoriaId = null,
+            DateTime? desde = null,
+            DateTime? hasta = null);
 
         Task<Transaccion> AddAsync(Transaccion transaccion, string nombreUsuario);
-
         Task<bool> SoftDeleteAsync(int id, string nombreUsuario);
     }
 }

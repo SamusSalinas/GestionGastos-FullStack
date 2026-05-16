@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using GestionDatos.API.Data;
 using GestionDatos.API.Models;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims; // Añadimos este using para simplificar los Claims
+using System.Security.Claims;
 using GestionDatos.API.Services;
 
 namespace GestionDatos.API.Controllers
@@ -20,18 +20,30 @@ namespace GestionDatos.API.Controllers
             _transaccionService = transaccionService;
         }
 
-        private string NombreUsuario => User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+        // Esta propiedad lee de forma segura el identificador único del Token JWT
+        private string NombreUsuario => User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                                         User.FindFirst(ClaimTypes.Name)?.Value ?? "";
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Transaccion>>> GetTransacciones()
+        public async Task<ActionResult<IEnumerable<Transaccion>>> GetTransacciones(
+            [FromQuery] int? categoriaId,
+            [FromQuery] DateTime? desde,
+            [FromQuery] DateTime? hasta)
         {
-            var transacciones = await _transaccionService.GetByUserAsync(NombreUsuario);
+            // 👈 ¡CORREGIDO! Ahora el GET usa exactamente la misma propiedad que el POST
+            if (string.IsNullOrEmpty(NombreUsuario)) return Unauthorized("No se pudo identificar al usuario en el token.");
+
+            // Pasamos los filtros que vienen en la URL
+            var transacciones = await _transaccionService.GetByUserAsync(NombreUsuario, categoriaId, desde, hasta);
+
             return Ok(transacciones);
         }
 
         [HttpPost]
         public async Task<ActionResult<Transaccion>> PostTransaccion(Transaccion transaccion)
         {
+            if (string.IsNullOrEmpty(NombreUsuario)) return Unauthorized("No se pudo identificar al usuario en el token.");
+
             var nueva = await _transaccionService.AddAsync(transaccion, NombreUsuario);
             return Ok(nueva);
         }
@@ -39,6 +51,8 @@ namespace GestionDatos.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> SoftDeleteTransaccion(int id)
         {
+            if (string.IsNullOrEmpty(NombreUsuario)) return Unauthorized("No se pudo identificar al usuario en el token.");
+
             var exito = await _transaccionService.SoftDeleteAsync(id, NombreUsuario);
             if (!exito) return NotFound();
             return NoContent();

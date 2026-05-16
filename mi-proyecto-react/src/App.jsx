@@ -3,297 +3,385 @@ import './App.css'
 import Tarjeta from './components/Tarjeta'
 
 function App() {
-
-  // 1. ESTADOS (La memoria)
-
-  //Brujula
+  // 1. ESTADOS
   const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [vista, setVista]= useState(token ? 'inicio' : 'login'); //Si hay token
-
-  //Creamos la memoria para la lista de la base de datos.
-  //mpieza como [] (un arreglo vacío) porque al inicio, 
-  // antes de consultar al servidor, no tenemos nada.
+  const [vista, setVista] = useState(token ? 'inicio' : 'login');
+  const [categorias, setCategorias] = useState([]);
   const [transacciones, setTransacciones] = useState([]);
   const [esRegistro, setEsRegistro] = useState(false);
 
-  //Creamos la memoria para el formulario.
-  const[nuevoGasto, setNuevoGasto] = useState({
-    monto:0,
-    descripcion:'',
+  // Estados para los filtros
+  const [filtroFechaDesde, setFiltroFechaDesde] = useState("");
+  const [filtroFechaHasta, setFiltroFechaHasta] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+
+  // Memoria del formulario (iniciamos la categoriaId en 0 para evitar errores)
+  const [nuevoGasto, setNuevoGasto] = useState({
+    monto: '',
+    descripcion: '',
     tipo: 'Gasto',
-    categoriaId: 1
+    categoriaId: 0 
   });
 
-  
+  // 2. LÓGICA DE FILTRADO LOCAL
+  const soloGastos = transacciones.filter(t => t.tipo === 'Gasto');
+  const soloGanancias = transacciones.filter(t => t.tipo === 'Ingreso');
+  const categoriasFiltradas = categorias.filter(c => c.tipo === nuevoGasto.tipo);
 
-  // 2. LÓGICA DE FILTRADO
-  // Los creamos aquí para usarlos abajo según la vista
-  const soloGastos = transacciones.filter(t => t.tipo === 'Gasto' && !t.estaBorrado);
-  const soloGanancias = transacciones.filter(t => t.tipo === 'Ingreso' && !t.estaBorrado);
+  const limpiarFiltros = () => {
+    setFiltroFechaDesde("");
+    setFiltroFechaHasta("");
+    setFiltroCategoria("");
+    obtenerTransacciones("", "", ""); 
+  };
 
-  // 3. FUNCIONES DE EVENTOS
-
-  const handleRegister = async (usuario, password) =>{
-    const response = await fetch('http://localhost:5000/api/Auth/registrar', {
+  // 3. FUNCIONES DE API
+  const guardarNuevaCategoria = async (nombre, tipo) => {
+    const response = await fetch('http://localhost:5000/api/categorias', {
       method: 'POST',
-      headers: {'Content-Type' : 'application/json'},
-      body: JSON.stringify({ usuario, password})
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ nombre, tipo })
     });
 
-    if (response.ok){
-      const data = await response.json();
-      // Guardamos el token que nos mando el registro
-      localStorage.setItem('token', data.token);
-      setToken(data.token);
-      setVista('inicio'); // Entra directamente
-      alert("¡Cuenta creada y sesión iniciada!");
-    }else{
-      alert("Error al registrarse. Quizás el usuario ya existe.")
-    }
-  }
-
-  const handleLogin = async (usuario, password) => {
-    try{
-      const response = await fetch('http://localhost:5000/api/Auth/login',{
-        method: 'POST',
-        headers: {'Content-Type' : 'application/json'},
-        body: JSON.stringify({ usuario, password})
-      });
-
-      if (response.ok){
-        const data = await response.json();
-        localStorage.setItem('token', data.token); // Guardamos la llave en el navegador
-        setToken(data.token);
-        setVista('inicio'); // Saltamos a la app principal
-      } else{
-        alert("Usuario o contraseña incorrectos")
-      }
-    } catch (error){
-      console.error("Error al conectar con la API:", error)
+    if (response.ok) {
+      const catCreada = await response.json();
+      setCategorias([...categorias, catCreada]);
+      alert(`¡Categoría '${nombre}' creada!`);
+      setVista('formulario');
     }
   };
 
-  const cargarTransacciones = async () => {
-  if (!token) return;
-
-  try {
-    const res = await fetch('http://localhost:5000/api/transacciones', {
-      headers: {
-        'Authorization': `Bearer ${token}` // Mostramos la pulsera VIP
-      }
+  const handleRegister = async (usuario, password) => {
+    const response = await fetch('http://localhost:5000/api/Auth/registrar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, password })
     });
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setVista('inicio');
+      alert("¡Cuenta creada y sesión iniciada!");
+    } else { alert("Error al registrarse."); }
+  };
 
-    if (res.ok) {
-      const data = await res.json();
-      setTransacciones(data); // Esto actualiza la lista y el saldo automáticamente
-    } else if (res.status === 401) {
-      handleLogout(); // Si el token no sirve, afuera
+  const handleLogin = async (usuario, password) => {
+    const response = await fetch('http://localhost:5000/api/Auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, password })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setVista('inicio');
+    } else { alert("Usuario o contraseña incorrectos"); }
+  };
+
+  const obtenerTransacciones = async (desde = "", hasta = "", catId = "") => {
+    if (!token) return;
+    const params = new URLSearchParams();
+    if (desde) params.append("desde", desde);
+    if (hasta) params.append("hasta", hasta);
+    if (catId) params.append("categoriaId", catId);
+
+    const url = `http://localhost:5000/api/transacciones?${params.toString()}`;
+    const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+    
+    if (response.ok) {
+      const data = await response.json();
+      setTransacciones(data);
     }
-  } catch (error) {
-    console.error("Error al cargar datos:", error);
-  }
-};
-  //Esta función se ejecuta cada vez que tecleas una sola letra en el formulario.
-  //(e): Es el "evento" que lanza el navegador. Contiene toda la información de la tecla que presionaste.
+  };
+
   const manejarCambio = (e) => {
-  // e.target.name es el nombre del input (ej: 'monto')
-  // e.target.value es lo que el usuario escribió
-  setNuevoGasto({
-    ...nuevoGasto,
-    [e.target.name]: e.target.value
-  });
+    const { name, value } = e.target;
+    if (name === 'tipo') {
+        setNuevoGasto({ ...nuevoGasto, tipo: value, categoriaId: 0 });
+    } else {
+        setNuevoGasto({
+            ...nuevoGasto,
+            [name]: (name === 'monto' || name === 'categoriaId') ? Number(value) : value
+        });
+    }
   };
 
   const enviarDatos = async (e) => {
-  e.preventDefault(); // Evita que la página se recargue
+    e.preventDefault(); 
+    const datosAEnviar = { ...nuevoGasto };
+    
+    // Seguro Anti-Errores
+    if (datosAEnviar.categoriaId === 0) {
+        if (categoriasFiltradas.length > 0) {
+            datosAEnviar.categoriaId = categoriasFiltradas[0].categoriaId;
+        } else {
+            alert("Error: No tienes categorías para este tipo. ¡Crea una primero!");
+            return;
+        }
+    }
 
-  const response = await fetch('http://localhost:5000/api/transacciones', {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(nuevoGasto) // Convertimos el objeto a texto JSON
-  });
+    try {
+      // Intentamos ir al Backend
+      const response = await fetch('http://localhost:5000/api/transacciones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(datosAEnviar) 
+      });
 
-  if (response.ok) {
-    const registroCreado = await response.json();// La API nos devuelve el objeto con su ID de SQL
-    // ACTUALIZACIÓN AUTOMÁTICA:
-    // "Toma lo que ya tenías y agrégale el nuevo registro al final"
-    setTransacciones([...transacciones, registroCreado]);
-
-    alert("Guardado con exito!");
-    setVista('inicio')// Te manda al inicio para ver el saldo actualizado
-  }
-  };
-
-  //Borrar
-  const borrarTransaccion = async (id) => {
-    // Confirmación simple para evitar errores
-    if (!window.confirm("¿Estás seguro de eliminar este registro?")) return;
-
-    const response = await fetch(`http://localhost:5000/api/transacciones/${id}`, {
-      method: 'DELETE', // El navegador enviará la petición al método que creamos arriba
-      headers:{
-        'Authorization': `Bearer ${token}`
+      if (response.ok) {
+        const registroCreado = await response.json();
+        setTransacciones([...transacciones, registroCreado]);
+        alert("¡Guardado con éxito!");
+        setVista('inicio'); 
+        setNuevoGasto({ monto: '', descripcion: '', tipo: 'Gasto', categoriaId: 0 });
+      } else {
+        alert(`El Backend lo rechazó (Error ${response.status}).`);
       }
-    });
-
-    if (response.ok){
-      // Para que desaparezca de la pantalla sin recargar:
-    // Filtramos la lista local quitando la que acabamos de borrar
-      setTransacciones(transacciones.filter(t => t.transaccionId !== id));
-    } else {
-      alert("Error al intentar borrar el registro");
+    } catch (error) {
+      // Si el Backend está apagado o inalcanzable, caerá aquí
+      alert("¡React no pudo encontrar el Backend! ¿Está corriendo Visual Studio?");
     }
   };
-  
 
-  // 4. CARGA INICIAL
+  const borrarTransaccion = async (id) => {
+    if (!window.confirm("¿Eliminar este registro?")) return;
+    const response = await fetch(`http://localhost:5000/api/transacciones/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (response.ok) {
+      setTransacciones(transacciones.filter(t => t.transaccionId !== id));
+    }
+  };
+
+  // 4. USE EFFECTS (Carga Inicial y Persistencia)
+  useEffect(() => {
+    if (!token) return;
+    const cargarCategorias = async () => {
+      const response = await fetch("http://localhost:5000/api/categorias", {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) setCategorias(await response.json());
+    };
+    cargarCategorias();
+  }, [token]);
 
   useEffect(() => {
-  cargarTransacciones();
-  }, [token]); // Se dispara solo al loguearte o cambiar el token
+    if (token) {
+        obtenerTransacciones(filtroFechaDesde, filtroFechaHasta, filtroCategoria);
+    }
+  }, [token, filtroFechaDesde, filtroFechaHasta, filtroCategoria]);
 
   const saldoTotal = transacciones.reduce((acumulado, t) => {
-    //Si es Ingreso sumamos, si es Gasto restamos
-    return t.tipo === 'Ingreso'
-    ? acumulado + t.monto
-    : acumulado - t.monto
-  }, 0)// El 0 es el valor inicial de la cuenta
+    return t.tipo === 'Ingreso' ? acumulado + Number(t.monto) : acumulado - Number(t.monto)
+  }, 0);
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Borramos la llave de la memoria física
+    localStorage.removeItem('token');
     setToken(null);
-    setTransacciones([]);// Limpiamos la lista por seguridad
-    setVista('login')// Volvemos a la puerta
+    setTransacciones([]);
+    setVista('login');
   };
-  // 5. RENDERIZADO (Lo que se ve)
 
+  // 5. RENDERIZADO
   return (
-    
     <div className="container">
-      {/*El HEADER SIEMPRE SE VE*/}
-      <header className="header">
-        <button onClick={() => setVista('inicio')}>Inicio</button>
-        <button onClick={() => setVista('formulario')}>Nuevo Registro</button>
-        <button onClick={() => setVista('gastos')}>Ver Gastos</button>
-        <button onClick={() => setVista('ganancias')}>Ver Ganancias</button>
-        <button onClick={handleLogout} className="boton-salir">Cerrar Sesion</button>
-      </header>
-      
+      {token && (
+        <header className="header">
+          <button onClick={() => setVista('inicio')}>Inicio</button>
+          <button onClick={() => setVista('formulario')}>Nuevo Registro</button>
+          <button onClick={() => setVista('nueva-categoria')}>Nueva Categoría</button>
+          <button onClick={() => setVista('gastos')}>Ver Gastos</button>
+          <button onClick={() => setVista('ganancias')}>Ver Ganancias</button>
+          <button onClick={handleLogout} className="boton-salir">Cerrar Sesión</button>
+        </header>
+      )}
+
       <main>
-      <h1>Gestión de Gastos</h1>
+        <h1>Gestión de Gastos</h1>
 
-      {/*Vista Login*/}
-      {vista === 'login' && (
-        <div className="login-container">
-          <h2>{esRegistro ? 'Crear Cuenta' : 'Ingresar'}</h2>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const u = e.target.usuario.value;
-            const p = e.target.password.value;
-            esRegistro ? handleRegister(u, p) : handleLogin(u, p);
-          }}>
-            <input name="usuario" type="text" placeholder="Usuario" required />
-            <input name="password" type="password" placeholder="Contraseña" required />
-            <button type="submit" className="boton-auth"> {/* <--- Asegúrate de esta clase */}
-              {esRegistro ? 'Registrarme' : 'Entrar'}
-            </button>
-          </form>
-          
-          <p className="toggle-auth">
-            {esRegistro ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
-            <span onClick={() => setEsRegistro(!esRegistro)}>
-              {esRegistro ? 'Inicia Sesión' : 'Regístrate aquí'}
-            </span>
-          </p>
-        </div>
-      )}
-      
-      {/*Vista Inicio*/}
-      {vista === 'inicio' &&(
-        <div className='mensaje-inicio'>
-          <h2>Bienvenido</h2>
-          <p>Usa el menú superior para gestionar tus finanzas.</p>
-        </div>
-      )}
-
-      {vista === 'inicio' &&(
-        <div className="inicio-container">
-          <h2>Resumen General</h2>
-
-          {/* Aplicamos clase 'positivo' o 'negativo' según el número */}
-          <div className={`tarjeta-saldo ${saldoTotal >= 0 ? 'positivo' : 'negativo'}`}>
-          <h3>Saldo Disponible</h3>
-          <p className="monto-total">
-            {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(saldoTotal)}
-        
-          </p>
+        {vista === 'login' && (
+          <div className="login-container">
+            <h2>{esRegistro ? 'Crear Cuenta' : 'Ingresar'}</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const u = e.target.usuario.value;
+              const p = e.target.password.value;
+              esRegistro ? handleRegister(u, p) : handleLogin(u, p);
+            }}>
+              <input name="usuario" type="text" placeholder="Usuario" required />
+              <input name="password" type="password" placeholder="Contraseña" required />
+              <button type="submit" className="boton-auth">{esRegistro ? 'Registrarme' : 'Entrar'}</button>
+            </form>
+            <p className="toggle-auth">
+              {esRegistro ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
+              <span onClick={() => setEsRegistro(!esRegistro)}>
+                {esRegistro ? ' Inicia Sesión' : ' Regístrate aquí'}
+              </span>
+            </p>
           </div>
-          <p>Tienes un total de {transacciones.length} registros en tu base de datos.</p>
-        </div>
-      )}
-      
-      {/*Vista: Formulario*/}
-      {vista === 'formulario' &&(
-        <section className="seccion-formulario">
-          <h2>Nuevo Registro</h2>
-          <form onSubmit={enviarDatos} className="formulario-moderno">
-            <div className="grupo-input">
-              <label>Monto</label>
-              <input name="monto" type="number" placeholder="0.00" onChange={manejarCambio} />
+        )}
+
+        {(vista === 'gastos' || vista === 'ganancias') && (
+          <div className="filters-container">
+            <div className="filters-title">🔍 Filtros de Búsqueda</div>
+            
+            <div className="filters-grid">
+              {/* Grupo de Botones de Tipo */}
+              <div className="filter-group">
+                <label>Tipo de Flujo</label>
+                <div className="filter-buttons-group">
+                  <button 
+                    className={`btn-filter ${vista === 'ganancias' ? 'active-ingreso' : ''}`}
+                    onClick={() => setVista('ganancias')}
+                  >
+                    Ingresos
+                  </button>
+                  <button 
+                    className={`btn-filter ${vista === 'gastos' ? 'active-gasto' : ''}`}
+                    onClick={() => setVista('gastos')}
+                  >
+                    Gastos
+                  </button>
+                </div>
+              </div>
+
+              {/* Filtro por Categoría */}
+              <div className="filter-group">
+                <label>Categoría</label>
+                <select 
+                  className="filter-control"
+                  value={filtroCategoria}
+                  onChange={(e) => setFiltroCategoria(e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  {categorias
+                    .filter(c => vista === 'gastos' ? c.tipo === 'Gasto' : c.tipo === 'Ingreso')
+                    .map(cat => (
+                      <option key={cat.categoriaId} value={cat.categoriaId}>{cat.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por Fechas */}
+              <div className="filter-group">
+                <label>Desde</label>
+                <input 
+                  type="date" 
+                  className="filter-control" 
+                  value={filtroFechaDesde}
+                  onChange={(e) => setFiltroFechaDesde(e.target.value)}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label>Hasta</label>
+                <input 
+                  type="date" 
+                  className="filter-control" 
+                  value={filtroFechaHasta}
+                  onChange={(e) => setFiltroFechaHasta(e.target.value)}
+                />
+              </div>
+
+              <button className="btn-clear-filters" onClick={limpiarFiltros}>
+                Limpiar
+              </button>
             </div>
-
-            <div className="grupo-input">
-              <label>Descripción</label>
-              <input name="descripcion" type="text" placeholder="¿En qué se usó el dinero?" onChange={manejarCambio} />
-            </div>
-
-            <div className="grupo-input">
-              <label>Tipo de Movimiento</label>
-              <select name="tipo" onChange={manejarCambio}>
-                <option value="Gasto">📉 Gasto</option>
-                <option value="Ingreso">📈 Ingreso</option>
-              </select>
-            </div>
-
-            <button type="submit" className="boton-guardar">Guardar Registro</button>
-          </form>
-        </section>
-      )}
-
-      {/*Vista: Gastos*/}
-      {vista === 'gastos' &&(
-        <div className='Lista-tarjetas'>
-          <h2>Mis Gastos</h2>
-          {soloGastos.map((t) => (
-            <Tarjeta
-              key={t.transaccionId}
-              nombre={t.descripcion}
-              oficio={`Gasto: $${t.monto}`}
-              color="#e74c3c"
-              onDelete={() => borrarTransaccion(t.transaccionId)}
-            />
-          ))}
         </div>
-      )}
+        )}
 
-      {/*Vista Ganancias */}
-      {vista === 'ganancias' && (
-        <div className='lista-tarjetas'>
-          <h2>Mis Ganancias</h2>
-          {soloGanancias.map((t) => (
-            <Tarjeta
-            key={t.transaccionId}
-            nombre={t.descripcion}
-            oficio={`Ingreso: $${t.monto}`}
-            color="#2ecc71"
-            onDelete={() => borrarTransaccion(t.transaccionId)}
-            />
-          ))}
-        </div>
-      )}
+        {vista === 'inicio' && (
+          <div className="inicio-container">
+            <div className='mensaje-inicio'>
+              <h2>Bienvenido</h2>
+              <p>Usa el menú superior para gestionar tus finanzas.</p>
+            </div>
+            <div className={`tarjeta-saldo ${saldoTotal >= 0 ? 'positivo' : 'negativo'}`}>
+              <h3>Saldo Disponible</h3>
+              <p className="monto-total">
+                {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(saldoTotal)}
+              </p>
+            </div>
+            <p>Tienes un total de {transacciones.length} registros en tu base de datos.</p>
+          </div>
+        )}
+
+        {vista === 'formulario' && (
+          <section className="seccion-formulario">
+            <h2>Nuevo Registro</h2>
+            <form onSubmit={enviarDatos} className="formulario-moderno">
+              <div className="grupo-input">
+                <label>Monto</label>
+                <input name="monto" type="number" placeholder="0.00" value={nuevoGasto.monto} onChange={manejarCambio} required />
+              </div>
+              <div className="grupo-input">
+                <label>Descripción</label>
+                <input name="descripcion" type="text" placeholder="¿En qué se usó?" value={nuevoGasto.descripcion} onChange={manejarCambio} required />
+              </div>
+              <div className="grupo-input">
+                <label>Tipo</label>
+                <select name="tipo" value={nuevoGasto.tipo} onChange={manejarCambio}>
+                  <option value="Gasto">📉 Gasto</option>
+                  <option value="Ingreso">📈 Ingreso</option>
+                </select>
+              </div>
+              <div className="grupo-input">
+                <label>Categoría</label>
+                <select name="categoriaId" value={nuevoGasto.categoriaId || ""} onChange={manejarCambio} required>
+                    <option value="">Seleccione una...</option>
+                    {categoriasFiltradas.map(cat => (
+                        <option key={cat.categoriaId} value={cat.categoriaId}>{cat.nombre}</option>
+                    ))}
+                </select>
+              </div>
+              <button type="submit" className="boton-guardar">Guardar Registro</button>
+            </form>
+          </section>
+        )}
+
+        {vista === 'nueva-categoria' && (
+          <section className="seccion-formulario">
+            <h2>Crear Nueva Categoría</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              guardarNuevaCategoria(e.target.nombreCat.value, e.target.tipoCat.value);
+            }} className="formulario-moderno">
+              <div className="grupo-input">
+                <label>Nombre</label>
+                <input name="nombreCat" type="text" placeholder="Ej: Gimnasio..." required />
+              </div>
+              <div className="grupo-input">
+                <label>Tipo</label>
+                <select name="tipoCat">
+                  <option value="Gasto">Gasto</option>
+                  <option value="Ingreso">Ingreso</option>
+                </select>
+              </div>
+              <button type="submit" className="boton-guardar">Guardar Categoría</button>
+            </form>
+          </section>
+        )}
+
+        {vista === 'gastos' && (
+          <div className='lista-tarjetas'>
+            <h2>Mis Gastos</h2>
+            {soloGastos.length > 0 ? soloGastos.map((t) => (
+              <Tarjeta key={t.transaccionId} nombre={t.descripcion} oficio={`${t.categoria?.nombre || 'S/C'} - $${t.monto}`} color="#e74c3c" onDelete={() => borrarTransaccion(t.transaccionId)} />
+            )) : <p>No hay gastos registrados o que coincidan con los filtros.</p>}
+          </div>
+        )}
+
+        {vista === 'ganancias' && (
+          <div className='lista-tarjetas'>
+            <h2>Mis Ganancias</h2>
+            {soloGanancias.length > 0 ? soloGanancias.map((t) => (
+              <Tarjeta key={t.transaccionId} nombre={t.descripcion} oficio={`${t.categoria?.nombre || 'S/C'} - $${t.monto}`} color="#2ecc71" onDelete={() => borrarTransaccion(t.transaccionId)} />
+            )) : <p>No hay ingresos registrados o que coincidan con los filtros.</p>}
+          </div>
+        )}
       </main>
     </div>
   )

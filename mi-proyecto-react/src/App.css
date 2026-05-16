@@ -300,7 +300,138 @@
   color: #535bf2;
   text-decoration: underline;
 }
+/* ==========================================
+   CONTENEDOR PRINCIPAL DE FILTROS
+   ========================================== */
+.filters-container {
+  background: #1e1e24; /* Un gris oscuro moderno que combina con Scalar */
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid #2d2d35;
+}
 
+.filters-title {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Distribución en Grid para que sea responsivo */
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  align-items: flex-end;
+}
+
+/* ==========================================
+   ELEMENTOS DE FORMULARIO (Inputs y Selects)
+   ========================================== */
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  color: #9ca3af; /* Gris claro para las etiquetas */
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.filter-control {
+  background: #2a2a32;
+  color: #ffffff;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.filter-control:focus {
+  border-color: #3b82f6; /* Azul brillante al enfocar */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Cambiar el color del icono del calendario nativo en inputs tipo date */
+.filter-control::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+/* ==========================================
+   BOTONES DE FILTRO (Gastos vs Ingresos)
+   ========================================== */
+.filter-buttons-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-filter {
+  flex: 1;
+  background: #2a2a32;
+  color: #9ca3af;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.btn-filter:hover {
+  background: #33333c;
+  color: #ffffff;
+}
+
+/* Estados activos con semántica de colores (Verde e Ingreso / Rojo Gasto) */
+.btn-filter.active-ingreso {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981; /* Verde esmeralda */
+  border-color: #10b981;
+}
+
+.btn-filter.active-ingreso:hover {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.btn-filter.active-gasto {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444; /* Rojo coral */
+  border-color: #ef4444;
+}
+
+.btn-filter.active-gasto:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+/* Botón de limpiar filtros */
+.btn-clear-filters {
+  background: transparent;
+  color: #6b7280;
+  border: 1px dashed #4b5563;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-clear-filters:hover {
+  border-color: #9ca3af;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
 
 .hero {
   position: relative;

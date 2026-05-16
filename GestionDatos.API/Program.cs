@@ -1,12 +1,14 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
 using GestionDatos.API.Data;
+using GestionDatos.API.Models;
 using GestionDatos.API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using Scalar.AspNetCore; // 👈 1. IMPORTANTE: Añadimos la caja de herramientas de Scalar
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 // 1. Configurar la conexión a SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -15,18 +17,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // 2. Habilitar los Controladores
 builder.Services.AddControllers();
 
-// 3. Habilitar CORS para que React pueda conectarse
-
+// 3. Habilitar CORS para que React pueda conectarse sin bloqueos
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirReact", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // La URL de React
+        policy.WithOrigins("http://localhost:5173") // La URL de tu React
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
+// Configurar Seguridad JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.ASCII.GetBytes(jwtSettings.GetValue<string>("key")!);
 
@@ -50,22 +52,76 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Configurar OpenAPI Nativo de .NET 10 con Candado de Seguridad Oficial
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        if (document == null) return Task.CompletedTask;
+
+        document.Components ??= new Microsoft.OpenApi.OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, Microsoft.OpenApi.IOpenApiSecurityScheme>();
+
+        var esquemaSeguridad = new Microsoft.OpenApi.OpenApiSecurityScheme
+        {
+            Type = Microsoft.OpenApi.SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "Escribe la palabra 'Bearer' seguida de un espacio y tu token JWT.\n\nEjemplo: Bearer eyJ..."
+        };
+
+        document.Components.SecuritySchemes.Add("Bearer", esquemaSeguridad);
+
+        var requisitoSeguridad = new Microsoft.OpenApi.OpenApiSecurityRequirement
+        {
+            [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document)] = new List<string>()
+        };
+
+        document.Security = new List<Microsoft.OpenApi.OpenApiSecurityRequirement> { requisitoSeguridad };
+
+        return Task.CompletedTask;
+    });
+});
+
+// Inyección de dependencias de tus Servicios
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+
 var app = builder.Build();
 
-// --- CONFIGURACIÓN DEL PIPELINE ---
-
+// --- CONFIGURACIÓN DEL PIPELINE (MIDDLEWARES) ---
 app.UseHttpsRedirection();
 
-// 4. Usar la política de CORS
+// Activar la política de CORS para React
 app.UseCors("PermitirReact");
 
-app.UseAuthentication();// ¿Quién eres?
-app.UseAuthorization();// ¿Qué puedes hacer?
+app.UseAuthentication(); // ¿Quién eres?
+app.UseAuthorization();  // ¿Qué puedes hacer?
 
-// 5. Mapear los controladores
+// Mapear los controladores de la API
 app.MapControllers();
-app.UseSwagger();
-app.UseSwaggerUI();
+
+// Publica tu documentación OpenAPI nativa de .NET 10
+app.MapOpenApi();
+
+// 👈 2. ¡LA MAGIA! Esto mapea la interfaz gráfica interactiva de Scalar
+app.MapScalarApiReference();
+
+// Seeder automático de categorías de prueba
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (!context.Categorias.Any())
+    {
+        context.Categorias.AddRange(
+            new Categoria { Nombre = "Comida", Tipo = "Gasto", Usuario = "Sistema" },
+            new Categoria { Nombre = "Transporte", Tipo = "Gasto", Usuario = "Sistema" },
+            new Categoria { Nombre = "Salario", Tipo = "Ingreso", Usuario = "Sistema" }
+        );
+        context.SaveChanges();
+    }
+}
+
+// Arrancar la aplicación
 app.Run();

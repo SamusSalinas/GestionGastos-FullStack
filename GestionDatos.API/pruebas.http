@@ -1,0 +1,8 @@
+﻿### Probar el Login para obtener el Token
+POST http://localhost:5000/api/Auth/login
+Content-Type: application/json
+
+{
+  "Usuario": "samuel",
+  "Password": "18042001"
+}

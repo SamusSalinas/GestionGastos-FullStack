@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using GestionDatos.API.Models; // Verifica que apunte a tu carpeta Model
+using GestionDatos.API.Models;
 
 namespace GestionDatos.API.Data
 {
@@ -11,5 +11,16 @@ namespace GestionDatos.API.Data
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<Transaccion> Transacciones { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
-    }
-}
+
+        // ESTO DEBE IR DENTRO DE LA CLASE
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Esto quita la advertencia del Monto y define la precisión
+            modelBuilder.Entity<Transaccion>()
+                .Property(t => t.Monto)
+                .HasColumnType("decimal(18,2)");
+        }
+    } // Aquí cierra la clase
+} // Aquí cierra el namespace
