@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import './App.css'
 import Tarjeta from './components/Tarjeta'
 import Dashboard from './components/Dashboard'
@@ -6,11 +7,11 @@ import Login from './components/Login';
 import FormularioTransaccion from './components/FormularioTransaccion';
 import Filtros from './components/Filtros';
 import FormularioCategoria from './components/FormularioCategoria';
+import { apiService } from './services/api';
 
 function App() {
   // 1. ESTADOS
   const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [vista, setVista] = useState(token ? 'inicio' : 'login');
   const [categorias, setCategorias] = useState([]);
   const [transacciones, setTransacciones] = useState([]);
   const [esRegistro, setEsRegistro] = useState(false);
@@ -21,12 +22,11 @@ function App() {
   const [filtroCategoria, setFiltroCategoria] = useState("");
 
   // Memoria del formulario (iniciamos la categoriaId en 0 para evitar errores)
-  const [nuevoGasto, setNuevoGasto] = useState({
-    monto: '',
-    descripcion: '',
-    tipo: 'Gasto',
-    categoriaId: 0 
-  });
+  const [nuevoGasto, setNuevoGasto] = useState({ monto: '', descripcion: '', tipo: 'Gasto', categoriaId: 0 });
+
+  const navigate = useNavigate();
+  
+  
 
   // 2. LÓGICA DE FILTRADO LOCAL Y MÉTRICAS
   const soloGastos = transacciones.filter(t => t.tipo === 'Gasto');
@@ -48,63 +48,41 @@ function App() {
 
   // 3. FUNCIONES DE API
   const guardarNuevaCategoria = async (nombre, tipo) => {
-    const response = await fetch('http://localhost:5000/api/categorias', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ nombre, tipo })
-    });
-
-    if (response.ok) {
-      const catCreada = await response.json();
+    try {
+      const catCreada = await apiService.crearCategoria(token, nombre, tipo);
       setCategorias([...categorias, catCreada]);
       alert(`¡Categoría '${nombre}' creada!`);
-      setVista('formulario');
-    }
+      navigate('/formulario');
+    } catch (error) { alert(error.message); }
   };
 
   const handleRegister = async (usuario, password) => {
-    const response = await fetch('http://localhost:5000/api/Auth/registrar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ usuario, password })
-    });
-    if (response.ok) {
-      const data = await response.json();
+    try {
+      const data = await apiService.registrar(usuario, password);
       localStorage.setItem('token', data.token);
       setToken(data.token);
-      setVista('inicio');
+      navigate('/inicio');
       alert("¡Cuenta creada y sesión iniciada!");
-    } else { alert("Error al registrarse."); }
-  };
+    } catch (error) { alert(error.message); }
+    
+  }
 
   const handleLogin = async (usuario, password) => {
-    const response = await fetch('http://localhost:5000/api/Auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ usuario, password })
-    });
-    if (response.ok) {
-      const data = await response.json();
+    try {
+      const data = await apiService.login(usuario, password);
       localStorage.setItem('token', data.token);
       setToken(data.token);
-      setVista('inicio');
-    } else { alert("Usuario o contraseña incorrectos"); }
+      navigate('/inicio');
+    } catch (error) { alert(error.message); }
+    navigate('/inicio');
   };
 
   const obtenerTransacciones = async (desde = "", hasta = "", catId = "") => {
     if (!token) return;
-    const params = new URLSearchParams();
-    if (desde) params.append("desde", desde);
-    if (hasta) params.append("hasta", hasta);
-    if (catId) params.append("categoriaId", catId);
-
-    const url = `http://localhost:5000/api/transacciones?${params.toString()}`;
-    const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-    
-    if (response.ok) {
-      const data = await response.json();
+    try {
+      const data = await apiService.obtenerTransacciones(token, desde, hasta, catId);
       setTransacciones(data);
-    }
+    } catch (error) { console.error(error); }
   };
 
   const manejarCambio = (e) => {
@@ -120,59 +98,41 @@ function App() {
   };
 
   const enviarDatos = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     const datosAEnviar = { ...nuevoGasto };
-    
-    // Seguro Anti-Errores
+
     if (datosAEnviar.categoriaId === 0) {
-        if (categoriasFiltradas.length > 0) {
-            datosAEnviar.categoriaId = categoriasFiltradas[0].categoriaId;
-        } else {
-            alert("Error: No tienes categorías para este tipo. ¡Crea una primero!");
-            return;
-        }
+        if (categoriasFiltradas.length > 0) { datosAEnviar.categoriaId = categoriasFiltradas[0].categoriaId; } 
+        else { alert("Error: Crea una categoría primero."); return; }
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/transacciones', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(datosAEnviar) 
-      });
-
-      if (response.ok) {
-        const registroCreado = await response.json();
-        setTransacciones([...transacciones, registroCreado]);
-        alert("¡Guardado con éxito!");
-        setVista('inicio'); 
-        setNuevoGasto({ monto: '', descripcion: '', tipo: 'Gasto', categoriaId: 0 });
-      } else {
-        alert(`El Backend lo rechazó (Error ${response.status}).`);
-      }
+      const registroCreado = await apiService.crearTransaccion(token, datosAEnviar);
+      setTransacciones([...transacciones, registroCreado]);
+      alert("¡Guardado con éxito!");
+      navigate('/inicio');
+      setNuevoGasto({ monto: '', descripcion: '', tipo: 'Gasto', categoriaId: 0 });
     } catch (error) {
-      alert("¡React no pudo encontrar el Backend! ¿Está corriendo Visual Studio?");
+      alert(error.message || "¡Error de conexión con el Backend!");
     }
   };
 
   const borrarTransaccion = async (id) => {
     if (!window.confirm("¿Eliminar este registro?")) return;
-    const response = await fetch(`http://localhost:5000/api/transacciones/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (response.ok) {
+    try {
+      await apiService.borrarTransaccion(token, id);
       setTransacciones(transacciones.filter(t => t.transaccionId !== id));
-    }
+    } catch (error) { alert(error.message); }
   };
 
   // 4. USE EFFECTS (Carga Inicial y Persistencia)
   useEffect(() => {
     if (!token) return;
     const cargarCategorias = async () => {
-      const response = await fetch("http://localhost:5000/api/categorias", {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) setCategorias(await response.json());
+      try {
+        const data = await apiService.obtenerCategorias(token);
+        setCategorias(data);
+      } catch (error) { console.error(error); }
     };
     cargarCategorias();
   }, [token]);
@@ -187,7 +147,7 @@ function App() {
     localStorage.removeItem('token');
     setToken(null);
     setTransacciones([]);
-    setVista('login');
+    navigate('/login');
   };
 
   // 5. RENDERIZADO
@@ -195,95 +155,55 @@ function App() {
     <div className="container">
       {token && (
         <header className="header">
-          <button onClick={() => setVista('inicio')}>Inicio</button>
-          <button onClick={() => setVista('formulario')}>Nuevo Registro</button>
-          <button onClick={() => setVista('nueva-categoria')}>Nueva Categoría</button>
-          <button onClick={() => setVista('gastos')}>Ver Gastos</button>
-          <button onClick={() => setVista('ganancias')}>Ver Ganancias</button>
+          <button onClick={() => navigate('/inicio')}>Inicio</button>
+          
+          {/* Cambiamos '/formulario' por '/registro' para que coincida con tu Route */}
+          <button onClick={() => navigate('/registro')}>Nuevo Registro</button>
+          
+          {/* Cambiamos '/nueva-categoria' por '/categoria' para que coincida con tu Route */}
+          <button onClick={() => navigate('/categoria')}>Nueva Categoría</button>
+          
+          <button onClick={() => navigate('/gastos')}>Ver Gastos</button>
+          <button onClick={() => navigate('/ganancias')}>Ver Ganancias</button>
           <button onClick={handleLogout} className="boton-salir">Cerrar Sesión</button>
         </header>
       )}
 
       <main>
         <h1>Gestión de Gastos</h1>
+        
+        <Routes>
+          <Route path="/login" element={!token ? <Login esRegistro={esRegistro} setEsRegistro={setEsRegistro} handleLogin={handleLogin} handleRegister={handleRegister} /> : <Navigate to="/inicio" />} />
+          
+          <Route path="/inicio" element={token ? <Dashboard saldoTotal={saldoTotal} pozoAhorro={pozoAhorro} totalGastos={totalGastos} soloGastos={soloGastos} /> : <Navigate to="/login" />} />
+          
+          <Route path="/registro" element={token ? <FormularioTransaccion enviarDatos={enviarDatos} nuevoGasto={nuevoGasto} manejarCambio={manejarCambio} categoriasFiltradas={categoriasFiltradas} /> : <Navigate to="/login" />} />
+          
+          <Route path="/categoria" element={token ? <FormularioCategoria guardarNuevaCategoria={guardarNuevaCategoria} /> : <Navigate to="/login" />} />
+          
+          {/* VISTAS DE LISTAS */}
+          <Route path="/gastos" element={token ? (
+            <>
+                <Filtros vista="gastos" setVista={() => navigate('/gastos')} categorias={categorias} filtroCategoria={filtroCategoria} setFiltroCategoria={setFiltroCategoria} filtroFechaDesde={filtroFechaDesde} setFiltroFechaDesde={setFiltroFechaDesde} filtroFechaHasta={filtroFechaHasta} setFiltroFechaHasta={setFiltroFechaHasta} limpiarFiltros={limpiarFiltros} />
+                <div className='lista-tarjetas'>
+                    {soloGastos.map(t => <div key={t.transaccionId} className="tarjeta-item"><Tarjeta nombre={t.descripcion} oficio={`${t.categoria?.nombre || 'S/C'} - $${t.monto}`} color="#e74c3c" onDelete={() => borrarTransaccion(t.transaccionId)} /></div>)}
+                </div>
+            </>
+          ) : <Navigate to="/login" />} />
 
-        {/* --- FORMULARIO DE AUTH (LOGIN / REGISTRO) --- */}
-        {vista === 'login' && (
-          <Login 
-            esRegistro={esRegistro} 
-            setEsRegistro={setEsRegistro} 
-            handleLogin={handleLogin} 
-            handleRegister={handleRegister} 
-          />
-        )}
-
-        {/* --- CONTENEDOR DE FILTROS --- */}
-        {(vista === 'gastos' || vista === 'ganancias') && (
-          <Filtros 
-            vista={vista}
-            setVista={setVista}
-            categorias={categorias}
-            filtroCategoria={filtroCategoria}
-            setFiltroCategoria={setFiltroCategoria}
-            filtroFechaDesde={filtroFechaDesde}
-            setFiltroFechaDesde={setFiltroFechaDesde}
-            filtroFechaHasta={filtroFechaHasta}
-            setFiltroFechaHasta={setFiltroFechaHasta}
-            limpiarFiltros={limpiarFiltros}
-          />
-        )}
-
-        {/* --- PANTALLA DE INICIO (DASHBOARD COMPLETO) --- */}
-        {vista === 'inicio' && (
-          <Dashboard 
-            saldoTotal={saldoTotal} 
-            pozoAhorro={pozoAhorro} 
-            totalGastos={totalGastos} 
-            soloGastos={soloGastos} 
-          />
-        )}
-
-        {/* --- SECCIÓN NUEVO REGISTRO --- */}
-        {vista === 'formulario' && (
-          <FormularioTransaccion 
-            enviarDatos={enviarDatos}
-            nuevoGasto={nuevoGasto}
-            manejarCambio={manejarCambio}
-            categoriasFiltradas={categoriasFiltradas}
-          />
-        )}
-
-        {/* --- SECCIÓN NUEVA CATEGORÍA --- */}
-        {vista === 'nueva-categoria' && (
-          <FormularioCategoria guardarNuevaCategoria={guardarNuevaCategoria} />
-        )}
-
-        {/* --- VISTA LISTADO DE GASTOS --- */}
-        {vista === 'gastos' && (
-          <div className='lista-tarjetas'>
-            <h2>Mis Gastos</h2>
-            {soloGastos.length > 0 ? soloGastos.map((t) => (
-              <div key={t.transaccionId} className="tarjeta-item">
-                <Tarjeta nombre={t.descripcion} oficio={`${t.categoria?.nombre || 'S/C'} - $${t.monto}`} color="#e74c3c" onDelete={() => borrarTransaccion(t.transaccionId)} />
-              </div>
-            )) : <p>No hay gastos registrados o que coincidan con los filtros.</p>}
-          </div>
-        )}
-
-        {/* --- VISTA LISTADO DE GANANCIAS --- */}
-        {vista === 'ganancias' && (
-          <div className='lista-tarjetas'>
-            <h2>Mis Ganancias</h2>
-            {soloGanancias.length > 0 ? soloGanancias.map((t) => (
-              <div key={t.transaccionId} className="tarjeta-item">
-                <Tarjeta nombre={t.descripcion} oficio={`${t.categoria?.nombre || 'S/C'} - $${t.monto}`} color="#2ecc71" onDelete={() => borrarTransaccion(t.transaccionId)} />
-              </div>
-            )) : <p>No hay ingresos registrados o que coincidan con los filtros.</p>}
-          </div>
-        )}
+          <Route path="/ganancias" element={token ? (
+            <>
+                <Filtros vista="ganancias" setVista={() => navigate('/ganancias')} categorias={categorias} filtroCategoria={filtroCategoria} setFiltroCategoria={setFiltroCategoria} filtroFechaDesde={filtroFechaDesde} setFiltroFechaDesde={setFiltroFechaDesde} filtroFechaHasta={filtroFechaHasta} setFiltroFechaHasta={setFiltroFechaHasta} limpiarFiltros={limpiarFiltros} />
+                <div className='lista-tarjetas'>
+                    {soloGanancias.map(t => <div key={t.transaccionId} className="tarjeta-item"><Tarjeta nombre={t.descripcion} oficio={`${t.categoria?.nombre || 'S/C'} - $${t.monto}`} color="#2ecc71" onDelete={() => borrarTransaccion(t.transaccionId)} /></div>)}
+                </div>
+            </>
+          ) : <Navigate to="/login" />} />
+          
+          <Route path="/" element={<Navigate to={token ? "/inicio" : "/login"} />} />
+        </Routes>
       </main>
     </div>
   )
 }
-
 export default App;
