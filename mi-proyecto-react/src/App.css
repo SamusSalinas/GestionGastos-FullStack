@@ -1,310 +1,246 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
-
-
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-}
-
-/* El contenedor principal del Header */
-.header {
-  display: flex ;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  background-color: #1a1a1a;
-  padding: 15px 0;
-  border-bottom: 2px solid #333;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 1);
-  }
-
-.header button{
-  background: none;
-  border: 1px solid transparent;
-  color: #fff;
-  padding: 8px 16px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 8px;
-}
-
-/*Efecto al pasar el mouse*/
-.header button:hover {
-  background-color: #333;
-  border-color: #646cff;/* El color morado de Vite */
-  color: #646cff;
-}
-
-.header button:active{
-  transform: scale(0.95);
-}
-
-/* Contenedor del saldo */
-.tarjeta-saldo {
-  padding: 40px;
-  border-radius: 16px;
-  background-color: #242424;
-  margin: 30px auto;
-  max-width: 500px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  border-bottom: 6px solid transparent;
-  transition: all 0.4s ease;
-}
-
-/* El número grande */
-.monto-total {
-  font-size: 3.5rem;
-  font-weight: 800;
-  margin: 10px 0;
-}
-
-/* Clases dinámicas */
-.tarjeta-saldo.positivo {
-  border-color: #2ecc71;
-  color: #2ecc71;
-}
-
-.tarjeta-saldo.negativo {
-  border-color: #e74c3c;
-  color: #e74c3c;
-}
-
-.inicio-container h2 {
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-.seccion-formulario{
-  max-width: 500px;
-  margin: 40px auto;
-  padding: 30px;
-  background-color: #1e1e1e;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-}
-
-.formulario-moderno{
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* Estilo de los grupos de input */
-.grupo-input{
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  gap: 8px;
-}
-
-.grupo-input label{
-  font-size: 0.9rem;
-  color: #888;
-  font-weight: 600;
-}
-
-/* Estilo de los inputs y select */
-.grupo-input input, 
-.grupo-input select {
-  padding: 12px;
-  background-color: #2a2a2a;
-  border: 1px solid #444;
-  border-radius: 6px;
-  color: white;
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-/* Efecto al hacer clic (focus) */
-.grupo-input input:focus, 
-.grupo-input select:focus {
-  border-color: #646cff;
-  box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.2);
-}
-
-/* El botón de guardar */
-.boton-guardar {
-  margin-top: 10px;
-  padding: 14px;
-  background-color: #646cff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.boton-guardar:hover{
-  background-color: #535bf2;
-  transform: translateY(-2px);
-}
-
-.boton-guardar:active {
-  transform: translateY(0);
-}
-
-.tarjeta{
-  display: flex;
-  justify-content: space-between;/* Empuja el texto a la izquierda y el tacho a la derecha */
-  align-items: center;
-  background-color: #1e1e1e;
-  margin: 10px 0;
-  padding: 15px 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-  transition: transform 0.2s;
-}
-
-.tarjeta:hover{
-  transform: scale(1.02);
-}
-
-.info-gasto{
-  text-align: left;/* Alinea el texto a la izquierda */
-}
-
-.info-gasto h3 {
+/* ==========================================
+   1. VARIABLES Y RESET GENERAL
+   ========================================== */
+* {
   margin: 0;
-  font-size: 1.1rem;
-  color: #fff;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-.info-gasto p{
-  margin: 5px 0 0;
-  color: #aaa;
-  font-size: 0.9rem;
+body {
+  background-color: #121214;
+  color: #e4e4e7;
 }
 
-.boton-eliminar {
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: background 0.3s;
+/* ==========================================
+   2. LAYOUT PRINCIPAL Y HEADER
+   ========================================== */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.boton-eliminar{
-  background-color: rgba(231, 76, 60, 0.2); /* Fondo rojo suave al pasar el mouse */
-}
-
-/* Contenedor principal del Login - Estilo Dark */
-.login-container {
-  max-width: 450px;
-  margin: 80px auto;
-  padding: 40px;
-  background-color: #1e1e1e; /* Igual que tus secciones */
+  flex-wrap: wrap;
+  gap: 10px;
+  background: #1e1e24;
+  padding: 15px 20px;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  text-align: center;
-  border: 1px solid #333;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid #2d2d35;
 }
 
-.login-container h2 {
-  color: #fff;
+.header button {
+  background: #2a2a32;
+  color: #e4e4e7;
+  border: 1px solid #3f3f46;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.header button:hover {
+  background: #3f3f46;
+  color: #ffffff;
+}
+
+.header .boton-salir {
+  margin-left: auto;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.header .boton-salir:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+/* ==========================================
+   3. TIPOGRAFÍA
+   ========================================== */
+h1 {
+  font-size: 2rem;
   margin-bottom: 25px;
-  font-size: 1.8rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #888; /* Estilo similar a tu h2 de inicio */
+  color: #ffffff;
+  text-align: center;
 }
 
-/* Reutilizamos la lógica de tus grupos de input */
-.login-container form {
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #f4f4f5;
+}
+
+/* ==========================================
+   4. FORMULARIOS (LOGIN, REGISTROS, CATEGORÍAS)
+   ========================================== */
+.login-container, .seccion-formulario {
+  background: #1e1e24;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 450px;
+  margin: 0 auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid #2d2d35;
+}
+
+.formulario-moderno, .login-container form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
-.login-container input {
+.grupo-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.grupo-input label {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+input, select {
+  background: #2a2a32;
+  color: #ffffff;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
   padding: 12px;
-  background-color: #2a2a2a; /* Fondo oscuro para inputs */
-  border: 1px solid #444;
-  border-radius: 6px;
-  color: white;
-  font-size: 1rem;
+  font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
 }
 
-.login-container input:focus {
-  border-color: #646cff; /* Morado de Vite */
-  box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.2);
+input:focus, select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
-/* Botón con el estilo de tu .boton-guardar */
-.boton-auth {
-  margin-top: 10px;
-  padding: 14px;
-  background-color: #646cff;
+.boton-auth, .boton-guardar {
+  background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
   font-size: 1rem;
-  font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: background 0.2s ease;
+  margin-top: 10px;
 }
 
-.boton-auth:hover {
-  background-color: #535bf2;
-  transform: translateY(-2px);
+.boton-auth:hover, .boton-guardar:hover {
+  background: #2563eb;
 }
 
-.boton-auth:active {
-  transform: translateY(0);
-  transform: scale(0.95);
-}
-
-/* Texto inferior para cambiar entre vistas */
 .toggle-auth {
-  margin-top: 25px;
-  color: #888;
-  font-size: 0.95rem;
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #9ca3af;
 }
 
 .toggle-auth span {
-  color: #646cff;
+  color: #3b82f6;
   cursor: pointer;
   font-weight: 600;
-  margin-left: 5px;
-  transition: color 0.3s;
 }
 
 .toggle-auth span:hover {
-  color: #535bf2;
   text-decoration: underline;
 }
+
 /* ==========================================
-   CONTENEDOR PRINCIPAL DE FILTROS
+   5. DASHBOARD (INICIO) REFACTORIZADO COMPLETO
+   ========================================== */
+.inicio-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
+
+.mensaje-inicio {
+  text-align: left;
+}
+
+.mensaje-inicio h2 {
+  font-size: 1.8rem;
+  color: #ffffff;
+  margin-bottom: 5px;
+}
+
+.mensaje-inicio p {
+  color: #9ca3af;
+  font-size: 1rem;
+}
+
+/* Distribución inteligente de las tarjetas */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.tarjeta-dashboard {
+  background: #1e1e24;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid #2d2d35;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.tarjeta-dashboard:hover {
+  transform: translateY(-3px);
+}
+
+.tarjeta-dashboard h3 {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.monto-dashboard {
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+/* Semántica cromática de las tarjetas */
+.tarjeta-dashboard.positivo .monto-dashboard { color: #10b981; }
+.tarjeta-dashboard.negativo .monto-dashboard { color: #ef4444; }
+
+.tarjeta-dashboard.ahorro .monto-dashboard { color: #10b981; } /* Sincronizado verde esmeralda */
+.tarjeta-dashboard.ahorro small {
+  color: #71717a;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+.tarjeta-dashboard.gastos-totales .monto-dashboard { color: #f59e0b; }
+
+/* ==========================================
+   6. FILTROS
    ========================================== */
 .filters-container {
-  background: #1e1e24; /* Un gris oscuro moderno que combina con Scalar */
+  background: #1e1e24;
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 25px;
@@ -322,7 +258,6 @@
   gap: 8px;
 }
 
-/* Distribución en Grid para que sea responsivo */
 .filters-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -330,9 +265,6 @@
   align-items: flex-end;
 }
 
-/* ==========================================
-   ELEMENTOS DE FORMULARIO (Inputs y Selects)
-   ========================================== */
 .filter-group {
   display: flex;
   flex-direction: column;
@@ -340,7 +272,7 @@
 }
 
 .filter-group label {
-  color: #9ca3af; /* Gris claro para las etiquetas */
+  color: #9ca3af;
   font-size: 0.85rem;
   font-weight: 500;
 }
@@ -357,19 +289,15 @@
 }
 
 .filter-control:focus {
-  border-color: #3b82f6; /* Azul brillante al enfocar */
+  border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
-/* Cambiar el color del icono del calendario nativo en inputs tipo date */
 .filter-control::-webkit-calendar-picker-indicator {
   filter: invert(1);
   cursor: pointer;
 }
 
-/* ==========================================
-   BOTONES DE FILTRO (Gastos vs Ingresos)
-   ========================================== */
 .filter-buttons-group {
   display: flex;
   gap: 10px;
@@ -394,28 +322,18 @@
   color: #ffffff;
 }
 
-/* Estados activos con semántica de colores (Verde e Ingreso / Rojo Gasto) */
 .btn-filter.active-ingreso {
   background: rgba(16, 185, 129, 0.15);
-  color: #10b981; /* Verde esmeralda */
+  color: #10b981;
   border-color: #10b981;
-}
-
-.btn-filter.active-ingreso:hover {
-  background: rgba(16, 185, 129, 0.25);
 }
 
 .btn-filter.active-gasto {
   background: rgba(239, 68, 68, 0.15);
-  color: #ef4444; /* Rojo coral */
+  color: #ef4444;
   border-color: #ef4444;
 }
 
-.btn-filter.active-gasto:hover {
-  background: rgba(239, 68, 68, 0.25);
-}
-
-/* Botón de limpiar filtros */
 .btn-clear-filters {
   background: transparent;
   color: #6b7280;
@@ -433,168 +351,96 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
-.hero {
-  position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
-}
-
-#center {
+/* ==========================================
+   7. LISTA DE TARJETAS (TRANSACCIONES)
+   ========================================== */
+.lista-tarjetas {
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+  gap: 15px;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-#next-steps {
+.tarjeta-item {
   display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
+  flex-direction: column;
+  background: #1e1e24;
+  border-radius: 8px;
+  border: 1px solid #2d2d35;
+  transition: transform 0.2s ease;
 }
 
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+.tarjeta-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
-}
-
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
-}
-
-.ticks {
-  position: relative;
+/* ==========================================
+   8. NUEVA SECCIÓN DE GRÁFICOS NATIVOS
+   ========================================== */
+.analytics-section {
+  background: #1e1e24;
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid #2d2d35;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   width: 100%;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
+.analytics-section h2 {
+  font-size: 1.2rem;
+  margin-bottom: 22px;
+  color: #ffffff;
+  text-align: left;
+}
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+.chart-mock-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.chart-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.chart-cat-name {
+  color: #e4e4e7;
+}
+
+.chart-cat-monto {
+  color: #a1a1aa;
+}
+
+.chart-bar-bg {
+  background: #2a2a32;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.chart-bar-fill {
+  background: linear-gradient(90deg, #3b82f6, #2ecc71);
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.no-data-text {
+  color: #71717a;
+  text-align: center;
+  padding: 30px 0;
+  font-style: italic;
+  font-size: 0.95rem;
 }

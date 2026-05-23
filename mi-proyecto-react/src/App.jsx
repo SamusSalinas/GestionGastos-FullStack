@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import Tarjeta from './components/Tarjeta'
+import Dashboard from './components/Dashboard'
+import Login from './components/Login';
+import FormularioTransaccion from './components/FormularioTransaccion';
+import Filtros from './components/Filtros';
+import FormularioCategoria from './components/FormularioCategoria';
 
 function App() {
   // 1. ESTADOS
@@ -23,10 +28,16 @@ function App() {
     categoriaId: 0 
   });
 
-  // 2. LÓGICA DE FILTRADO LOCAL
+  // 2. LÓGICA DE FILTRADO LOCAL Y MÉTRICAS
   const soloGastos = transacciones.filter(t => t.tipo === 'Gasto');
   const soloGanancias = transacciones.filter(t => t.tipo === 'Ingreso');
   const categoriasFiltradas = categorias.filter(c => c.tipo === nuevoGasto.tipo);
+
+  // Cálculos matemáticos del Dashboard en vivo
+  const totalIngresos = transacciones.filter(t => t.tipo === 'Ingreso').reduce((acc, t) => acc + Number(t.monto), 0);
+  const totalGastos = transacciones.filter(t => t.tipo === 'Gasto').reduce((acc, t) => acc + Number(t.monto), 0);
+  const saldoTotal = totalIngresos - totalGastos;
+  const pozoAhorro = totalIngresos * 0.2; // 20% de los ingresos totales se destinan a la meta de ahorro
 
   const limpiarFiltros = () => {
     setFiltroFechaDesde("");
@@ -123,7 +134,6 @@ function App() {
     }
 
     try {
-      // Intentamos ir al Backend
       const response = await fetch('http://localhost:5000/api/transacciones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -140,7 +150,6 @@ function App() {
         alert(`El Backend lo rechazó (Error ${response.status}).`);
       }
     } catch (error) {
-      // Si el Backend está apagado o inalcanzable, caerá aquí
       alert("¡React no pudo encontrar el Backend! ¿Está corriendo Visual Studio?");
     }
   };
@@ -174,10 +183,6 @@ function App() {
     }
   }, [token, filtroFechaDesde, filtroFechaHasta, filtroCategoria]);
 
-  const saldoTotal = transacciones.reduce((acumulado, t) => {
-    return t.tipo === 'Ingreso' ? acumulado + Number(t.monto) : acumulado - Number(t.monto)
-  }, 0);
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -202,183 +207,77 @@ function App() {
       <main>
         <h1>Gestión de Gastos</h1>
 
+        {/* --- FORMULARIO DE AUTH (LOGIN / REGISTRO) --- */}
         {vista === 'login' && (
-          <div className="login-container">
-            <h2>{esRegistro ? 'Crear Cuenta' : 'Ingresar'}</h2>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const u = e.target.usuario.value;
-              const p = e.target.password.value;
-              esRegistro ? handleRegister(u, p) : handleLogin(u, p);
-            }}>
-              <input name="usuario" type="text" placeholder="Usuario" required />
-              <input name="password" type="password" placeholder="Contraseña" required />
-              <button type="submit" className="boton-auth">{esRegistro ? 'Registrarme' : 'Entrar'}</button>
-            </form>
-            <p className="toggle-auth">
-              {esRegistro ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
-              <span onClick={() => setEsRegistro(!esRegistro)}>
-                {esRegistro ? ' Inicia Sesión' : ' Regístrate aquí'}
-              </span>
-            </p>
-          </div>
+          <Login 
+            esRegistro={esRegistro} 
+            setEsRegistro={setEsRegistro} 
+            handleLogin={handleLogin} 
+            handleRegister={handleRegister} 
+          />
         )}
 
+        {/* --- CONTENEDOR DE FILTROS --- */}
         {(vista === 'gastos' || vista === 'ganancias') && (
-          <div className="filters-container">
-            <div className="filters-title">🔍 Filtros de Búsqueda</div>
-            
-            <div className="filters-grid">
-              {/* Grupo de Botones de Tipo */}
-              <div className="filter-group">
-                <label>Tipo de Flujo</label>
-                <div className="filter-buttons-group">
-                  <button 
-                    className={`btn-filter ${vista === 'ganancias' ? 'active-ingreso' : ''}`}
-                    onClick={() => setVista('ganancias')}
-                  >
-                    Ingresos
-                  </button>
-                  <button 
-                    className={`btn-filter ${vista === 'gastos' ? 'active-gasto' : ''}`}
-                    onClick={() => setVista('gastos')}
-                  >
-                    Gastos
-                  </button>
-                </div>
-              </div>
-
-              {/* Filtro por Categoría */}
-              <div className="filter-group">
-                <label>Categoría</label>
-                <select 
-                  className="filter-control"
-                  value={filtroCategoria}
-                  onChange={(e) => setFiltroCategoria(e.target.value)}
-                >
-                  <option value="">Todas</option>
-                  {categorias
-                    .filter(c => vista === 'gastos' ? c.tipo === 'Gasto' : c.tipo === 'Ingreso')
-                    .map(cat => (
-                      <option key={cat.categoriaId} value={cat.categoriaId}>{cat.nombre}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Filtro por Fechas */}
-              <div className="filter-group">
-                <label>Desde</label>
-                <input 
-                  type="date" 
-                  className="filter-control" 
-                  value={filtroFechaDesde}
-                  onChange={(e) => setFiltroFechaDesde(e.target.value)}
-                />
-              </div>
-
-              <div className="filter-group">
-                <label>Hasta</label>
-                <input 
-                  type="date" 
-                  className="filter-control" 
-                  value={filtroFechaHasta}
-                  onChange={(e) => setFiltroFechaHasta(e.target.value)}
-                />
-              </div>
-
-              <button className="btn-clear-filters" onClick={limpiarFiltros}>
-                Limpiar
-              </button>
-            </div>
-        </div>
+          <Filtros 
+            vista={vista}
+            setVista={setVista}
+            categorias={categorias}
+            filtroCategoria={filtroCategoria}
+            setFiltroCategoria={setFiltroCategoria}
+            filtroFechaDesde={filtroFechaDesde}
+            setFiltroFechaDesde={setFiltroFechaDesde}
+            filtroFechaHasta={filtroFechaHasta}
+            setFiltroFechaHasta={setFiltroFechaHasta}
+            limpiarFiltros={limpiarFiltros}
+          />
         )}
 
+        {/* --- PANTALLA DE INICIO (DASHBOARD COMPLETO) --- */}
         {vista === 'inicio' && (
-          <div className="inicio-container">
-            <div className='mensaje-inicio'>
-              <h2>Bienvenido</h2>
-              <p>Usa el menú superior para gestionar tus finanzas.</p>
-            </div>
-            <div className={`tarjeta-saldo ${saldoTotal >= 0 ? 'positivo' : 'negativo'}`}>
-              <h3>Saldo Disponible</h3>
-              <p className="monto-total">
-                {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(saldoTotal)}
-              </p>
-            </div>
-            <p>Tienes un total de {transacciones.length} registros en tu base de datos.</p>
-          </div>
+          <Dashboard 
+            saldoTotal={saldoTotal} 
+            pozoAhorro={pozoAhorro} 
+            totalGastos={totalGastos} 
+            soloGastos={soloGastos} 
+          />
         )}
 
+        {/* --- SECCIÓN NUEVO REGISTRO --- */}
         {vista === 'formulario' && (
-          <section className="seccion-formulario">
-            <h2>Nuevo Registro</h2>
-            <form onSubmit={enviarDatos} className="formulario-moderno">
-              <div className="grupo-input">
-                <label>Monto</label>
-                <input name="monto" type="number" placeholder="0.00" value={nuevoGasto.monto} onChange={manejarCambio} required />
-              </div>
-              <div className="grupo-input">
-                <label>Descripción</label>
-                <input name="descripcion" type="text" placeholder="¿En qué se usó?" value={nuevoGasto.descripcion} onChange={manejarCambio} required />
-              </div>
-              <div className="grupo-input">
-                <label>Tipo</label>
-                <select name="tipo" value={nuevoGasto.tipo} onChange={manejarCambio}>
-                  <option value="Gasto">📉 Gasto</option>
-                  <option value="Ingreso">📈 Ingreso</option>
-                </select>
-              </div>
-              <div className="grupo-input">
-                <label>Categoría</label>
-                <select name="categoriaId" value={nuevoGasto.categoriaId || ""} onChange={manejarCambio} required>
-                    <option value="">Seleccione una...</option>
-                    {categoriasFiltradas.map(cat => (
-                        <option key={cat.categoriaId} value={cat.categoriaId}>{cat.nombre}</option>
-                    ))}
-                </select>
-              </div>
-              <button type="submit" className="boton-guardar">Guardar Registro</button>
-            </form>
-          </section>
+          <FormularioTransaccion 
+            enviarDatos={enviarDatos}
+            nuevoGasto={nuevoGasto}
+            manejarCambio={manejarCambio}
+            categoriasFiltradas={categoriasFiltradas}
+          />
         )}
 
+        {/* --- SECCIÓN NUEVA CATEGORÍA --- */}
         {vista === 'nueva-categoria' && (
-          <section className="seccion-formulario">
-            <h2>Crear Nueva Categoría</h2>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              guardarNuevaCategoria(e.target.nombreCat.value, e.target.tipoCat.value);
-            }} className="formulario-moderno">
-              <div className="grupo-input">
-                <label>Nombre</label>
-                <input name="nombreCat" type="text" placeholder="Ej: Gimnasio..." required />
-              </div>
-              <div className="grupo-input">
-                <label>Tipo</label>
-                <select name="tipoCat">
-                  <option value="Gasto">Gasto</option>
-                  <option value="Ingreso">Ingreso</option>
-                </select>
-              </div>
-              <button type="submit" className="boton-guardar">Guardar Categoría</button>
-            </form>
-          </section>
+          <FormularioCategoria guardarNuevaCategoria={guardarNuevaCategoria} />
         )}
 
+        {/* --- VISTA LISTADO DE GASTOS --- */}
         {vista === 'gastos' && (
           <div className='lista-tarjetas'>
             <h2>Mis Gastos</h2>
             {soloGastos.length > 0 ? soloGastos.map((t) => (
-              <Tarjeta key={t.transaccionId} nombre={t.descripcion} oficio={`${t.categoria?.nombre || 'S/C'} - $${t.monto}`} color="#e74c3c" onDelete={() => borrarTransaccion(t.transaccionId)} />
+              <div key={t.transaccionId} className="tarjeta-item">
+                <Tarjeta nombre={t.descripcion} oficio={`${t.categoria?.nombre || 'S/C'} - $${t.monto}`} color="#e74c3c" onDelete={() => borrarTransaccion(t.transaccionId)} />
+              </div>
             )) : <p>No hay gastos registrados o que coincidan con los filtros.</p>}
           </div>
         )}
 
+        {/* --- VISTA LISTADO DE GANANCIAS --- */}
         {vista === 'ganancias' && (
           <div className='lista-tarjetas'>
             <h2>Mis Ganancias</h2>
             {soloGanancias.length > 0 ? soloGanancias.map((t) => (
-              <Tarjeta key={t.transaccionId} nombre={t.descripcion} oficio={`${t.categoria?.nombre || 'S/C'} - $${t.monto}`} color="#2ecc71" onDelete={() => borrarTransaccion(t.transaccionId)} />
+              <div key={t.transaccionId} className="tarjeta-item">
+                <Tarjeta nombre={t.descripcion} oficio={`${t.categoria?.nombre || 'S/C'} - $${t.monto}`} color="#2ecc71" onDelete={() => borrarTransaccion(t.transaccionId)} />
+              </div>
             )) : <p>No hay ingresos registrados o que coincidan con los filtros.</p>}
           </div>
         )}

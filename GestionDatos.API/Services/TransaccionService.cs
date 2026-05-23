@@ -39,6 +39,7 @@ namespace GestionDatos.API.Services
             transaccion.Usuario = nombreUsuario;
             _context.Transacciones.Add(transaccion);
             await _context.SaveChangesAsync();
+            await _context.Entry(transaccion).Reference(t => t.Categoria).LoadAsync();
             return transaccion;
         }
 
