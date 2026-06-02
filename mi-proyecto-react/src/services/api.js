@@ -1,4 +1,3 @@
-// Importamos la URL base desde nuestro archivo .env
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const apiService = {

@@ -157,10 +157,10 @@ function App() {
         <header className="header">
           <button onClick={() => navigate('/inicio')}>Inicio</button>
           
-          {/* Cambiamos '/formulario' por '/registro' para que coincida con tu Route */}
+          
           <button onClick={() => navigate('/registro')}>Nuevo Registro</button>
           
-          {/* Cambiamos '/nueva-categoria' por '/categoria' para que coincida con tu Route */}
+          
           <button onClick={() => navigate('/categoria')}>Nueva Categoría</button>
           
           <button onClick={() => navigate('/gastos')}>Ver Gastos</button>
