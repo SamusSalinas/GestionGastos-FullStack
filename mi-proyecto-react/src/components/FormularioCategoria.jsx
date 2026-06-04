@@ -28,6 +28,7 @@ function FormularioCategoria({ guardarNuevaCategoria }) {
           <select name="tipoCat">
             <option value="Gasto">📉 Gasto</option>
             <option value="Ingreso">📈 Ingreso</option>
+            <option value="Ahorro">🪙 Ahorro</option>
           </select>
         </div>
         

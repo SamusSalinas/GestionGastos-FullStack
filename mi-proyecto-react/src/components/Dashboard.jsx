@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Dashboard({ saldoTotal, pozoAhorro, totalGastos, soloGastos }) {
+export default function Dashboard({ saldoTotal, ahorros, metaAhorro, totalGastos, soloGastos }) {
   return (
     <div className="inicio-container">
       <div className='mensaje-inicio'>
@@ -17,12 +17,12 @@ function Dashboard({ saldoTotal, pozoAhorro, totalGastos, soloGastos }) {
         </div>
 
         <div className="tarjeta-dashboard ahorro">
-          <h3>Pozo de Ahorro</h3>
-          <p className="monto-dashboard">
-            {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(pozoAhorro)}
-          </p>
-          <small>🎯 Meta sugerida: 20% de tus ingresos totales guardados</small>
-        </div>
+      <h3>Ahorros</h3>
+      <p className="monto-dashboard">
+        {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(ahorros)}
+      </p>
+      <small>🎯 Meta sugerida: {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(metaAhorro)} (20% ideal)</small>
+    </div>
 
         <div className="tarjeta-dashboard gastos-totales">
           <h3>Gastos Totales</h3>
@@ -66,5 +66,3 @@ function Dashboard({ saldoTotal, pozoAhorro, totalGastos, soloGastos }) {
     </div>
   );
 }
-
-export default Dashboard;

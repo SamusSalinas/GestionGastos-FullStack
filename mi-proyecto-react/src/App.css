@@ -81,6 +81,34 @@ h2 {
 /* ==========================================
    4. FORMULARIOS (LOGIN, REGISTROS, CATEGORÍAS)
    ========================================== */
+
+   
+.input-password-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-password-container input {
+  width: 100%;
+  padding-right: 70px; 
+}
+
+.btn-ver-password {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #666; 
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-ver-password:hover {
+  color: #333; 
+}
+
 .login-container, .seccion-formulario {
   background: #1e1e24;
   padding: 30px;

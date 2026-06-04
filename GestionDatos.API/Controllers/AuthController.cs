@@ -49,20 +49,43 @@ namespace GestionDatos.API.Controllers
                 return BadRequest(new { mensaje = "El usuario ya existe" });
             }
 
-            var nuevoUsuario = new Usuario
+            // Iniciamos una transacción segura (Si algo falla, no se guarda nada a medias)
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                NombreUsuario = registroRequest.Usuario,
-                Password = registroRequest.Password
-            };
+                try
+                {
+                    var nuevoUsuario = new Usuario
+                    {
+                        NombreUsuario = registroRequest.Usuario,
+                        Password = registroRequest.Password
+                    };
 
-            // Guardar en la base de datos (Aquí es donde fallaba el _context)
-            _context.Usuarios.Add(nuevoUsuario);
-            await _context.SaveChangesAsync();
+                    _context.Usuarios.Add(nuevoUsuario);
+                    await _context.SaveChangesAsync(); // Al guardar, SQL Server le asigna un 'Id' al usuario
 
-            // Generar token para auto-login (Aquí corregimos el error de 'tpken')
-            var token = GenerarTokenJWT(nuevoUsuario.NombreUsuario);
+                    var nuevaCategoria = new Categoria
+                    {
+                        Nombre = "Ahorros Generales",
+                        Tipo = "Ahorro",
+                        Usuario = nuevoUsuario.NombreUsuario // Conectar la categoría con el dueño
+                    };
 
-            return Ok(new { token = token });
+                    _context.Categorias.Add(nuevaCategoria);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+                    var token = GenerarTokenJWT(nuevoUsuario.NombreUsuario);
+
+                    return Ok(new { token = token });
+                }
+                catch (Exception ex)
+                {
+                    // Si hubo un error de conexión, cancelamos todo para no dejar datos corruptos
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, new { mensaje = "Error interno al crear la cuenta. Intente nuevamente." });
+                }
+            }
         }
 
         private string GenerarTokenJWT(string usuario)

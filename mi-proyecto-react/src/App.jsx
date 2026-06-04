@@ -21,7 +21,7 @@ function App() {
   const [filtroFechaHasta, setFiltroFechaHasta] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
 
-  // Memoria del formulario (iniciamos la categoriaId en 0 para evitar errores)
+  // Memoria del formulario 
   const [nuevoGasto, setNuevoGasto] = useState({ monto: '', descripcion: '', tipo: 'Gasto', categoriaId: 0 });
 
   const navigate = useNavigate();
@@ -31,14 +31,25 @@ function App() {
   // 2. LÓGICA DE FILTRADO LOCAL Y MÉTRICAS
   const soloGastos = transacciones.filter(t => t.tipo === 'Gasto');
   const soloGanancias = transacciones.filter(t => t.tipo === 'Ingreso');
-  const categoriasFiltradas = categorias.filter(c => c.tipo === nuevoGasto.tipo);
 
-  // Cálculos matemáticos del Dashboard en vivo
+  const categoriasFiltradas = categorias.filter(c => {
+    if (nuevoGasto.tipo === 'Gasto Ahorro') return c.tipo === 'Gasto'
+    return c.tipo === nuevoGasto.tipo;
+  });
+  
   const totalIngresos = transacciones.filter(t => t.tipo === 'Ingreso').reduce((acc, t) => acc + Number(t.monto), 0);
   const totalGastos = transacciones.filter(t => t.tipo === 'Gasto').reduce((acc, t) => acc + Number(t.monto), 0);
-  const saldoTotal = totalIngresos - totalGastos;
-  const pozoAhorro = totalIngresos * 0.2; // 20% de los ingresos totales se destinan a la meta de ahorro
 
+  const totalEnviadoAlAhorro = transacciones.filter(t => t.tipo === 'Ahorro').reduce((acc, t) => acc + Number(t.monto), 0);
+  const totalGastadoDeAhorros = transacciones.filter(t => t.tipo === 'Gasto Ahorro').reduce((acc, t) => acc + Number(t.monto), 0);
+
+  
+  const ahorros = totalEnviadoAlAhorro - totalGastadoDeAhorros;
+
+ 
+  const saldoTotal = totalIngresos - totalGastos - totalEnviadoAlAhorro;
+
+  
   const limpiarFiltros = () => {
     setFiltroFechaDesde("");
     setFiltroFechaHasta("");
@@ -52,7 +63,7 @@ function App() {
       const catCreada = await apiService.crearCategoria(token, nombre, tipo);
       setCategorias([...categorias, catCreada]);
       alert(`¡Categoría '${nombre}' creada!`);
-      navigate('/formulario');
+      navigate('/inicio');
     } catch (error) { alert(error.message); }
   };
 
@@ -87,14 +98,23 @@ function App() {
 
   const manejarCambio = (e) => {
     const { name, value } = e.target;
-    if (name === 'tipo') {
-        setNuevoGasto({ ...nuevoGasto, tipo: value, categoriaId: 0 });
-    } else {
-        setNuevoGasto({
-            ...nuevoGasto,
-            [name]: (name === 'monto' || name === 'categoriaId') ? Number(value) : value
-        });
-    }
+    
+    setNuevoGasto(prev => {
+      const estadoActualizado = { ...prev, [name]: value };
+
+      if (name === 'tipo') {
+        estadoActualizado.categoriaId = ""; 
+
+        if (value === 'Ahorro') {
+          const catAhorro = categorias.find(c => c.tipo === 'Ahorro');
+          if (catAhorro) {
+            estadoActualizado.categoriaId = catAhorro.categoriaId; 
+          }
+        }
+      }
+
+      return estadoActualizado;
+    });
   };
 
   const enviarDatos = async (e) => {
@@ -175,7 +195,17 @@ function App() {
         <Routes>
           <Route path="/login" element={!token ? <Login esRegistro={esRegistro} setEsRegistro={setEsRegistro} handleLogin={handleLogin} handleRegister={handleRegister} /> : <Navigate to="/inicio" />} />
           
-          <Route path="/inicio" element={token ? <Dashboard saldoTotal={saldoTotal} pozoAhorro={pozoAhorro} totalGastos={totalGastos} soloGastos={soloGastos} /> : <Navigate to="/login" />} />
+          <Route path="/inicio" element={
+            token ? (
+              <Dashboard 
+                saldoTotal={saldoTotal} 
+                ahorros={ahorros} 
+                metaAhorro={totalIngresos * 0.2} 
+                totalGastos={totalGastos} 
+                soloGastos={soloGastos} 
+              />
+            ) : <Navigate to="/login" />
+          } />
           
           <Route path="/registro" element={token ? <FormularioTransaccion enviarDatos={enviarDatos} nuevoGasto={nuevoGasto} manejarCambio={manejarCambio} categoriasFiltradas={categoriasFiltradas} /> : <Navigate to="/login" />} />
           

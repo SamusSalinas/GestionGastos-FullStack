@@ -31,9 +31,11 @@ function FormularioTransaccion({ enviarDatos, nuevoGasto, manejarCambio, categor
         
         <div className="grupo-input">
           <label>Tipo</label>
-          <select name="tipo" value={nuevoGasto.tipo} onChange={manejarCambio}>
-            <option value="Gasto">📉 Gasto</option>
-            <option value="Ingreso">📈 Ingreso</option>
+          <select name="tipo" value={nuevoGasto.tipo} onChange={manejarCambio} required>
+              <option value="Gasto">Gasto Común</option>
+              <option value="Ingreso">Ingreso</option>
+              <option value="Ahorro">Enviar a Ahorros</option>
+              <option value="Gasto Ahorro">Gastar de Ahorros</option>
           </select>
         </div>
         
