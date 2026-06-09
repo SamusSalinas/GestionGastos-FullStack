@@ -1,4 +1,8 @@
 # Sistema de Gestión de Gastos Personal 
+![Visuales](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Visuales](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![Visuales](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
+![Visuales](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
 
 ¡Bienvenido! Este es un sistema **Full Stack** diseñado para el control eficiente de finanzas personales. No es solo una aplicación de "lista de tareas"; es un sistema multiusuario construido con estándares de arquitectura empresarial y buenas prácticas de la industria.
 
@@ -49,23 +53,19 @@ Para este proyecto, se aplicó una separación de responsabilidades clara en amb
 
 ## Instalación y Configuración
 
-### Prerrequisitos
-* .NET SDK 8.0
-* SQL Server (LocalDB o instancia de servidor)
-* Node.js (v18+)
+## 🚀 Instalación (Docker - Recomendado)
+La forma más rápida de ejecutar la aplicación es utilizando Docker Compose.
 
-### Configuración del Backend
-1. Navega a la carpeta `/GestionDatos.API`.
-2. Configura tu cadena de conexión en el archivo `appsettings.json`.
-3. Ejecuta las migraciones de Entity Framework para generar las tablas: `dotnet ef database update`.
-4. Corre la API: `dotnet run`. *(Por defecto correrá en el puerto 5000).*
-
-### Configuración del Frontend
-1. Navega a la carpeta `/mi-proyecto-react`.
-2. Crea un archivo `.env` en la raíz de esta carpeta e incluye la URL de tu API:
-```env
-   VITE_API_URL=http://localhost:5000/api
-
+1. **Clona el repositorio:**
+   ```bash
+   git clone [https://github.com/SamusSalinas/Gestion-Gastos.git](https://github.com/SamusSalinas/Gestion-Gastos.git)
+   cd Gestion-Gastos
+2. **Ejecuta los contenedores:**
+   Bash
+   docker-compose up -d --build
+3. **Accede a la app**
+   Frontend: http://localhost:3000
+   http://localhost:5000/scalar/v1
 Autor
  👤 Autor
  Samuel - Full Stack Developer
