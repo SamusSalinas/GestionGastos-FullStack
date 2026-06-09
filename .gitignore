@@ -44,3 +44,13 @@ yarn-error.log*
 *.swp
 *.bak
 Thumbs.db
+
+# Bases de datos y carpetas de Docker
+data/
+node_modules/
+dist/
+bin/
+obj/
+*.db
+*.log
+.env

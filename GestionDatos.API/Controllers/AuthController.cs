@@ -1,16 +1,17 @@
+using GestionDatos.API.Data; // Asegúrate de que este sea el namespace de tu AppDbContext
+using GestionDatos.API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using GestionDatos.API.Data; // Asegúrate de que este sea el namespace de tu AppDbContext
-using GestionDatos.API.Models;
 
 namespace GestionDatos.API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         // 1. Declaramos las dos herramientas que necesitamos
@@ -24,68 +25,65 @@ namespace GestionDatos.API.Controllers
             _config = config;
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginRequest)
+        public async Task<IActionResult> Login([FromBody] LoginDto login)
         {
-            // Buscamos al usuario real en la base de datos
+            // BUSCAMOS EL USUARIO
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.NombreUsuario == loginRequest.Usuario && u.Password == loginRequest.Password);
+                .FirstOrDefaultAsync(u => u.NombreUsuario == login.Usuario && u.Password == login.Password);
 
-            if (usuario != null)
+            if (usuario == null)
             {
-                var tokenString = GenerarTokenJWT(usuario.NombreUsuario);
-                return Ok(new { token = tokenString });
+                return Unauthorized(new { mensaje = "Usuario o contraseña incorrectos" });
             }
 
-            return Unauthorized(new { mensaje = "Usuario o contraseña incorrectos" });
+            var token = GenerarTokenJWT(usuario.NombreUsuario);
+            return Ok(new { token });
         }
 
         [HttpPost("registrar")]
         public async Task<IActionResult> Registrar([FromBody] LoginDto registroRequest)
         {
-            // Verificar si ya existe
             if (await _context.Usuarios.AnyAsync(u => u.NombreUsuario == registroRequest.Usuario))
             {
                 return BadRequest(new { mensaje = "El usuario ya existe" });
             }
 
-            // Iniciamos una transacción segura (Si algo falla, no se guarda nada a medias)
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            // Usamos la estrategia de ejecución para evitar fallos de transacción
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
             {
-                try
+                using (var transaction = await _context.Database.BeginTransactionAsync())
                 {
-                    var nuevoUsuario = new Usuario
+                    try
                     {
-                        NombreUsuario = registroRequest.Usuario,
-                        Password = registroRequest.Password
-                    };
+                        var nuevoUsuario = new Usuario { NombreUsuario = registroRequest.Usuario, Password = registroRequest.Password };
+                        _context.Usuarios.Add(nuevoUsuario);
+                        await _context.SaveChangesAsync();
 
-                    _context.Usuarios.Add(nuevoUsuario);
-                    await _context.SaveChangesAsync(); // Al guardar, SQL Server le asigna un 'Id' al usuario
+                        var nuevaCategoria = new Categoria
+                        {
+                            Nombre = "Ahorros Generales",
+                            Tipo = "Ahorro",
+                            Usuario = nuevoUsuario.NombreUsuario // Exclusivo de este usuario
+                        };
+                        _context.Categorias.Add(nuevaCategoria);
+                        await _context.SaveChangesAsync();
 
-                    var nuevaCategoria = new Categoria
+                        await transaction.CommitAsync();
+
+                        var token = GenerarTokenJWT(nuevoUsuario.NombreUsuario);
+                        return Ok(new { token = token });
+                    }
+                    catch (Exception ex)
                     {
-                        Nombre = "Ahorros Generales",
-                        Tipo = "Ahorro",
-                        Usuario = nuevoUsuario.NombreUsuario // Conectar la categoría con el dueño
-                    };
-
-                    _context.Categorias.Add(nuevaCategoria);
-                    await _context.SaveChangesAsync();
-
-                    await transaction.CommitAsync();
-
-                    var token = GenerarTokenJWT(nuevoUsuario.NombreUsuario);
-
-                    return Ok(new { token = token });
+                        await transaction.RollbackAsync();
+                        return StatusCode(500, new { mensaje = "Error interno: " + ex.Message });
+                    }
                 }
-                catch (Exception ex)
-                {
-                    // Si hubo un error de conexión, cancelamos todo para no dejar datos corruptos
-                    await transaction.RollbackAsync();
-                    return StatusCode(500, new { mensaje = "Error interno al crear la cuenta. Intente nuevamente." });
-                }
-            }
+            });
         }
 
         private string GenerarTokenJWT(string usuario)

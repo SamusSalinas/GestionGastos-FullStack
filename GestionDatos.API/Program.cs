@@ -12,7 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Configurar la conexión a SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptionsAction: sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null);
+        }));
 
 // 2. Habilitar los Controladores
 builder.Services.AddControllers();
@@ -22,7 +30,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirReact", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // La URL de tu React
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000") // La URL de tu React
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -90,8 +98,15 @@ builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<GestionDatos.API.Data.AppDbContext>();
+    // Esto obliga a Entity Framework a aplicar tus migraciones y crear la BD en Docker
+    context.Database.Migrate();
+}
+
 // CONFIGURACIÓN DEL PIPELINE (MIDDLEWARES) 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 // Activar la política de CORS para React
 app.UseCors("PermitirReact");
@@ -104,7 +119,6 @@ app.MapControllers();
 
 // Publica tu documentación OpenAPI nativa de .NET 10
 app.MapOpenApi();
-
 
 app.MapScalarApiReference();
 
