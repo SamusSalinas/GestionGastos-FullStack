@@ -60,12 +60,16 @@ La forma más rápida de ejecutar la aplicación es utilizando Docker Compose.
    ```bash
    git clone [https://github.com/SamusSalinas/Gestion-Gastos.git](https://github.com/SamusSalinas/Gestion-Gastos.git)
    cd Gestion-Gastos
+
 2. **Ejecuta los contenedores:**
    Bash
    docker-compose up -d --build
+
 3. **Accede a la app**
    Frontend: http://localhost:3000
    http://localhost:5000/scalar/v1
+   
+---
 Autor
  👤 Autor
  Samuel - Full Stack Developer
