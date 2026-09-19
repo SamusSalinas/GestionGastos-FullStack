@@ -8,16 +8,6 @@
 
 ---
 
-## Preview
-
-[GestionGastos-Login]<img width="1238" height="615" alt="image" src="https://github.com/user-attachments/assets/e179d03e-6618-4c90-9a7f-ccfc52a3a4c9" />
-[GestionGastos-Inicio]<img width="1118" height="623" alt="image" src="https://github.com/user-attachments/assets/1daf945b-a12d-4363-a568-72cf16cee74c" />
-[GestionGastos-Dashboard]<img width="1130" height="606" alt="image" src="https://github.com/user-attachments/assets/ee6c382b-8ac7-4f4e-a6c2-297afc3ce7d5" />
-[GestionGastos-NuevoRegistro]<img width="931" height="612" alt="image" src="https://github.com/user-attachments/assets/c8da7617-e750-49fb-917f-297e06c421aa" />
-[GestionGastos-Ganancias]<img width="897" height="617" alt="image" src="https://github.com/user-attachments/assets/aa8a9fdc-b2dd-4dd4-9b42-15c02aeb4f34" />
-
----
-
 ## Características Principales
 
 * **Seguridad de Nivel Industrial:** Autenticación y autorización basada en **JWT (JSON Web Tokens)**.
@@ -80,7 +70,26 @@ La forma más rápida de ejecutar la aplicación es utilizando Docker Compose.
    http://localhost:5000/scalar/v1
    
 ---
-Autor
+
+## Preview
+
+GestionGastos-Login
+<img width="1238" height="615" alt="image" src="https://github.com/user-attachments/assets/e179d03e-6618-4c90-9a7f-ccfc52a3a4c9" />
+
+GestionGastos-Inicio
+<img width="1118" height="623" alt="image" src="https://github.com/user-attachments/assets/1daf945b-a12d-4363-a568-72cf16cee74c" />
+
+GestionGastos-Dashboard
+<img width="1130" height="606" alt="image" src="https://github.com/user-attachments/assets/ee6c382b-8ac7-4f4e-a6c2-297afc3ce7d5" />
+
+GestionGastos-NuevoRegistro
+<img width="931" height="612" alt="image" src="https://github.com/user-attachments/assets/c8da7617-e750-49fb-917f-297e06c421aa" />
+
+GestionGastos-Ganancias
+<img width="897" height="617" alt="image" src="https://github.com/user-attachments/assets/aa8a9fdc-b2dd-4dd4-9b42-15c02aeb4f34" />
+
+---
+
  👤 Autor
  Samuel - Full Stack Developer
 - GitHub: https://github.com/SamusSalinas
