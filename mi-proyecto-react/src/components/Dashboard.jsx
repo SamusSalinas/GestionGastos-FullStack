@@ -21,7 +21,7 @@ export default function Dashboard({ saldoTotal, ahorros, metaAhorro, totalGastos
       <p className="monto-dashboard">
         {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(ahorros)}
       </p>
-      <small>🎯 Meta sugerida: {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(metaAhorro)} (20% ideal)</small>
+      <small><ion-icon name="flag-outline"></ion-icon> Meta sugerida: {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(metaAhorro)} (20% ideal)</small>
     </div>
 
         <div className="tarjeta-dashboard gastos-totales">
@@ -33,7 +33,7 @@ export default function Dashboard({ saldoTotal, ahorros, metaAhorro, totalGastos
       </div>
 
       <div className="analytics-section">
-        <h2>📊 Distribución Porcentual de Gastos por Categoría</h2>
+        <h2><ion-icon name="bar-chart-outline"></ion-icon> Distribución Porcentual de Gastos por Categoría</h2>
         {soloGastos.length > 0 ? (
           <div className="chart-mock-container">
             {Object.entries(

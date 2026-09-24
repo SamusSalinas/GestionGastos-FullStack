@@ -20,6 +20,13 @@ body {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
 }
 
 .header {
@@ -99,14 +106,15 @@ h2 {
   right: 10px;
   background: transparent;
   border: none;
-  color: #666; 
+  color: #9ca3af; 
   font-size: 0.85rem;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .btn-ver-password:hover {
-  color: #333; 
+  color: #ffffff; 
 }
 
 .login-container, .seccion-formulario {
@@ -138,7 +146,7 @@ h2 {
 }
 
 input, select {
-  background: #2a2a32;
+  background: #1e1e24;
   color: #ffffff;
   border: 1px solid #3f3f46;
   border-radius: 8px;
@@ -147,6 +155,14 @@ input, select {
   outline: none;
   transition: all 0.2s ease-in-out;
   width: 100%;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  -webkit-box-shadow: 0 0 0px 1000px #1e1e24 inset;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 input:focus, select:focus {
@@ -471,4 +487,80 @@ input:focus, select:focus {
   padding: 30px 0;
   font-style: italic;
   font-size: 0.95rem;
+}
+
+/* ==========================================
+   9. TARJETA INDIVIDUAL
+   ========================================== */
+.tarjeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  gap: 12px;
+}
+
+.info-gasto h3 {
+  font-size: 1rem;
+  color: #f4f4f5;
+  margin-bottom: 4px;
+}
+
+.info-gasto p {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.boton-eliminar {
+  background: transparent;
+  border: 1px solid #3f3f46;
+  color: #ef4444;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.boton-eliminar:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+}
+
+/* ==========================================
+   10. FOOTER STICKY
+   ========================================== */
+.app-footer {
+  margin-top: auto;
+  padding: 20px;
+  text-align: center;
+  border-top: 1px solid #2d2d35;
+  color: #71717a;
+  font-size: 0.85rem;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  color: #9ca3af;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: #3b82f6;
+}
+
+.footer-links ion-icon {
+  font-size: 1.2rem;
 }

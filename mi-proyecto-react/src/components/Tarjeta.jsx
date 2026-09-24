@@ -10,7 +10,7 @@ function Tarjeta({nombre, oficio, color, onDelete}) {
             </div>
             {/* Botón de eliminar */}
             <button className="boton-eliminar" onClick={onDelete} title="Eliminar">
-                🗑️
+                <ion-icon name="trash-outline"></ion-icon>
             </button>
         </div>
     );

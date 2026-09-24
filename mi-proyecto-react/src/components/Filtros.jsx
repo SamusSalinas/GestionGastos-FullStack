@@ -14,7 +14,7 @@ function Filtros({
 }) {
   return (
     <div className="filters-container">
-      <div className="filters-title">🔍 Filtros de Búsqueda</div>
+      <div className="filters-title"><ion-icon name="search-outline"></ion-icon> Filtros de Búsqueda</div>
       
       <div className="filters-grid">
         <div className="filter-group">

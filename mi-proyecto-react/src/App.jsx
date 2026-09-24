@@ -8,6 +8,7 @@ import FormularioTransaccion from './components/FormularioTransaccion';
 import Filtros from './components/Filtros';
 import FormularioCategoria from './components/FormularioCategoria';
 import { apiService } from './services/api';
+import Footer from './components/Footer';
 
 function App() {
   // 1. ESTADOS
@@ -233,6 +234,7 @@ function App() {
           <Route path="/" element={<Navigate to={token ? "/inicio" : "/login"} />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   )
 }

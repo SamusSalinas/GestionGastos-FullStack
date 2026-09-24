@@ -26,9 +26,9 @@ function FormularioCategoria({ guardarNuevaCategoria }) {
         <div className="grupo-input">
           <label>Tipo de Flujo</label>
           <select name="tipoCat">
-            <option value="Gasto">📉 Gasto</option>
-            <option value="Ingreso">📈 Ingreso</option>
-            <option value="Ahorro">🪙 Ahorro</option>
+            <option value="Gasto">Gasto</option>
+            <option value="Ingreso">Ingreso</option>
+            <option value="Ahorro">Ahorro</option>
           </select>
         </div>
         

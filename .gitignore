@@ -54,3 +54,4 @@ obj/
 *.db
 *.log
 .env
+.fake
